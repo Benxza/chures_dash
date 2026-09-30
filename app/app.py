@@ -12,6 +12,9 @@ df_principal = pd.read_csv('C:/Users/Usuario26/Desktop/chures_dash/data/ventas.c
 df_region = df_principal.groupby('Region', as_index=False).agg({'Ventas': 'sum'}).reset_index()
 df_categoria = df_principal.groupby('Categoria', as_index=False).agg({'Ventas': 'sum'}).reset_index()
 
+
+
+
 print(df_region)
 
 fig = px.bar(df_region, 
