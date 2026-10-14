@@ -67,17 +67,19 @@ app.layout = html.Div(children=[
               )
 
 def actualizar_grafica(categoria_seleccionada, region_seleccionada, region_aguacate_seleccionada):
-    global df_aguacate, df_principal
     
     df_categoria = df_principal[df_principal['Categoria'] == categoria_seleccionada]
     
     if region_seleccionada != 'Todas':
         df_categoria = df_categoria[df_categoria['Region'] == region_seleccionada]
+
+    df_av = df_aguacate 
+    
     if region_aguacate_seleccionada != 'Todas':
-        df_aguacate = df_aguacate[df_aguacate['region'] == region_aguacate_seleccionada]
+        df_av = df_av[df_av['region'] == region_aguacate_seleccionada]
     
     df_agrupado = df_categoria.groupby('Region', as_index=False).agg({'Ventas': 'sum'}).reset_index()
-    df_agrupado_aguacate = df_aguacate.groupby('region', as_index=False).agg({'Total_Volume': 'sum'}).reset_index()
+    df_agrupado_aguacate = df_av.groupby('region', as_index=False).agg({'Total_Volume': 'sum'}).reset_index()
     
     fig = px.bar(df_agrupado,
                  x='Region', 
