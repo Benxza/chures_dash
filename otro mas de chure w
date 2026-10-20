@@ -1,0 +1,62 @@
+import dash
+from dash import dcc,html,Input,Output
+import pandas as pd
+import plotly.express as px
+
+app=dash.Dash(__name__)
+
+df=pd.read_csv("cine.csv")
+
+
+genero=["Todas"] + df["Genero"].sort_values().unique().tolist()
+ciudad=["Todas"] + df["Ciudad"].sort_values().unique().tolist()
+
+app.layout=html.Div(children=[
+    html.H1("Dashboard de Cine"),
+    html.Label("selecciona genero"),
+    dcc.Dropdown(
+        id="dropdown-genero",
+        options=[{'label':x,"value":x}for x in genero],
+        value=genero[0],
+        style={'width': '30%'},
+    ),
+    html.Label("selecciona una ciudad"),
+    dcc.Dropdown(
+        id="dropdown-ciudad",
+        options=[{'label':x,"value":x}for x in ciudad],
+        value=ciudad[0],
+        style={'width': '30%'},
+    ),
+    dcc.Graph(id="Grafico-peliculas"),
+    dcc.Graph(id="grafico-ciudades")
+ ]) 
+
+
+@app.callback(
+    Output("Grafico-peliculas", "figure"),
+    Output("grafico-ciudades", "figure"),
+    Input("dropdown-genero", "value"),
+    Input("dropdown-ciudad","value"),
+)
+
+def actulizar(genero,ciudad):
+    df_pelicula=df.copy()
+    df_ciudad=df.copy()
+
+    if genero != "Todas":
+        df_pelicula= df_pelicula[df_pelicula["Genero"]==genero]
+        df_ciudad=df_ciudad[df_ciudad["Genero"]==genero]
+
+    if ciudad !="Todas":
+        df_pelicula=df_pelicula[df_pelicula["Ciudad"]==ciudad]
+
+    df_pelis_agruapdas=df_pelicula.groupby("Pelicula", as_index=False)["Boletos"].sum()
+    df_ciudades_agruapdas=df_ciudad.groupby("Ciudad", as_index=False)["Boletos"].sum()
+
+    fig1=px.bar(df_pelis_agruapdas, x="Pelicula",y="Boletos",
+                title=f"boletos de la ciudad {ciudad}")
+    fig2=px.bar(df_ciudades_agruapdas,x="Ciudad",y="Boletos",
+                title=f"boeltos de genero {genero}")    
+    return fig1,fig2
+if __name__ == '__main__':
+    app.run(debug=True)
