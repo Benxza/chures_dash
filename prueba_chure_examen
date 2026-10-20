@@ -1,0 +1,60 @@
+import dash
+from dash import dcc, html, Input, Output
+import pandas as pd
+import plotly.express as px
+
+app = dash.Dash(__name__)
+
+df = pd.read_csv("videojuegos.csv")
+
+videojuegos = df["Videojuego"].sort_values().unique().tolist()
+plataformas = ["Todas"] + df["Plataforma"].sort_values().unique().tolist()
+
+app.layout = html.Div(children=[
+    html.H1("Dashboard de Videojuegos"),
+
+    html.Label("Selecciona un videojuego:"),
+    dcc.Dropdown(
+        id="dropdown-videojuego",
+        options=[{'label': x, 'value': x} for x in videojuegos],
+        value=videojuegos[0],
+        style={'width': '30%'}
+    ),
+
+    html.Label("Selecciona una plataforma:"),
+    dcc.Dropdown(
+        id="dropdown-plataforma",
+        options=[{'label': x, 'value': x} for x in plataformas],
+        value=plataformas[0],
+        style={'width': '30%'}
+    ),
+
+    dcc.Graph(id="grafico-ventas"),
+    dcc.Graph(id="grafico-total")
+])
+
+
+@app.callback(
+    Output("grafico-ventas", "figure"),
+    Output("grafico-total", "figure"),
+    Input("dropdown-videojuego", "value"),
+    Input("dropdown-plataforma", "value"),
+)
+
+def actualizar(valor1,valor2):
+    df_filtrado=df[df["Videojuego"]== valor1]
+    df_total=df.copy()
+    if valor2 != "Todas":
+        df_filtrado =df_filtrado[df_filtrado["Plataforma"] == valor2]
+    fig=px.bar(df_filtrado,x="Plataforma",y="Ventas",
+               title=f"ventas de {valor1}")
+    if valor2 != "Todas":
+        df_total=df_total[df_total["Plataforma"]==valor2]
+        df_total = df_total.groupby("Videojuego", as_index=False).agg({"Ventas": "sum"})
+    fig2=px.bar(df_total,x="Videojuego", y="Ventas",
+                title=f"ventas totales {valor2}")
+    return fig,fig2
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
