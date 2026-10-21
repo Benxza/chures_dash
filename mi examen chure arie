@@ -1,0 +1,101 @@
+import dash
+import pandas as pd  
+from dash import dcc, html, Input, Output
+import plotly.express as px
+
+app = dash.Dash(__name__)
+
+df = pd.read_csv("ventas_2024.csv")
+
+region = ["Todas"] + df["region"].sort_values().unique().tolist()
+categoria = ["Todas"] + df["categoria"].sort_values().unique().tolist()
+producto = ["Todas"] + df["producto"].sort_values().unique().tolist()
+
+app.layout = html.Div(children=[
+    html.H1("La computadora feliz",
+            style={
+        'color': "#2C502E",        
+        'textAlign': 'center',       
+        'fontWeight': 'bold'        
+    }),
+    html.H2("reporte de ventas del año 2024",
+            style={
+        'color': "#DA1212",        
+        'textAlign': 'center',       
+        'fontWeight': 'bold'        
+    }),
+    html.H2("diseñada por el grupo 5ACDI",
+        style={
+    'color': "#1262DA",        
+    'textAlign': 'center',       
+    'fontWeight': 'bold'        
+    }),
+    html.Label("Selecciona región",
+               style={"color":"#0BEC1E"}),
+    dcc.Dropdown(
+        id="dropdown-region",
+        options=[{'label': x, "value": x} for x in region],
+        value=region[0],
+        style={'width': '30%', 'color': "#0BEC1E"},
+    ),
+    html.Div(children=[
+        html.Label("Selecciona una categoría",
+                   style={'color':"#12DA44"},),
+        dcc.Dropdown(
+            id="dropdown-categoria-1",
+            options=[{'label': x, "value": x} for x in categoria],
+            value=categoria[0],
+            style={'width': '30%', 'color': "#0BEC1E"},
+        )
+    ]), 
+    html.Div(children=[
+        html.Label("Selecciona un producto",
+                   style={"color":"#0BEC1E"}),
+        dcc.Dropdown(
+            id="dropdown-producto",
+            options=[{'label': x, "value": x} for x in producto],
+            value=producto[0],
+            style={'width': '30%', 'color': "#0BEC1E"},
+        )
+    ]),
+    html.Div(children=[
+    dcc.Graph(id="grafico-ventas-totales"),
+    dcc.Graph(id="grafico-por-region"),
+    ]) 
+    
+])
+
+@app.callback(
+    Output("grafico-ventas-totales", "figure"),  
+    Output("grafico-por-region", "figure"),
+    Input("dropdown-region", "value"),
+    Input("dropdown-categoria-1", "value"),
+    Input("dropdown-producto", "value"),
+)
+def actualizar(region_sel, categoria_sel, producto_sel):
+    df_todo = df.copy()
+    df_region = df.copy()
+
+    if categoria_sel != "Todas":
+        df_todo = df_todo[df_todo["categoria"] == categoria_sel]
+        df_region = df_region[df_region["categoria"] == categoria_sel]
+
+    if region_sel != "Todas":
+        df_todo = df_todo[df_todo["region"] == region_sel]
+
+    if producto_sel != "Todas":
+        df_todo = df_todo[df_todo["producto"] == producto_sel]
+        df_region = df_region[df_region["producto"] == producto_sel]
+
+    df_cat_agrupadas = df_todo.groupby("categoria", as_index=False)["ingreso_total"].sum()
+    df_reg_agrupadas = df_region.groupby("producto", as_index=False)["ingreso_total"].sum()
+
+    fig1 = px.bar(df_cat_agrupadas, x="categoria", y="ingreso_total",  
+                  title=f"Ventas totales - Región: {region_sel}")
+    fig2 = px.bar(df_reg_agrupadas, x="producto", y="ingreso_total", 
+                  title=f"Ventas por región - Categoría: {categoria_sel}")    
+    
+    return fig1, fig2
+
+if __name__ == "__main__": 
+    app.run(debug=True)
