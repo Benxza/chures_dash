@@ -58,6 +58,20 @@ app.layout = html.Div(children=[
             style={'width': '30%', 'color': "#0BEC1E"},
         )
     ]),
+    html.Div(style={'textAlign': 'center'},
+        children=[
+        
+        html.Div([ 
+            html.H4("ventas totales"),
+            html.H2(id="kpi-ventas"),
+        ]),
+        html.Div([ 
+            html.H4("promedio ventas"),
+            html.H2(id="kpi_prom"),
+        ]),
+
+
+    ]),
     html.Div(children=[
     dcc.Graph(id="grafico-ventas-totales"),
     dcc.Graph(id="grafico-por-region"),
@@ -68,6 +82,8 @@ app.layout = html.Div(children=[
 @app.callback(
     Output("grafico-ventas-totales", "figure"),  
     Output("grafico-por-region", "figure"),
+    Output("kpi-ventas", "children"),
+    Output("kpi_prom","children"),
     Input("dropdown-region", "value"),
     Input("dropdown-categoria-1", "value"),
     Input("dropdown-producto", "value"),
@@ -94,8 +110,13 @@ def actualizar(region_sel, categoria_sel, producto_sel):
                   title=f"Ventas totales - Región: {region_sel}")
     fig2 = px.bar(df_reg_agrupadas, x="producto", y="ingreso_total", 
                   title=f"Ventas por región - Categoría: {categoria_sel}")    
-    
-    return fig1, fig2
+
+    #calculo KPi
+    total_ventas=df_todo["ventas"].sum()
+    ventas_promedio=df_todo["ventas"].mean()
+    kpi_texto=f"${total_ventas:,.0f}"
+    kpi_texto2=f"${ventas_promedio:,.0f}"
+    return fig1, fig2,kpi_texto,kpi_texto2
 
 if __name__ == "__main__": 
     app.run(debug=True)
