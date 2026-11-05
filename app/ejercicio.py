@@ -2,11 +2,31 @@ import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
 import plotly.express as px
+import dash_bootstrap_components as dbc
+from dash_bootstrap_templates import load_figure_template
 
 
 
-app = dash.Dash(__name__)
 
+
+load_figure_template("Quartz")
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.QUARTZ])
+
+app.layout= dbc.Container(
+    children=[
+        dbc.Row(
+            dbc.Col(
+                html.H1("Ariel es gay hot 2026",className="text-gay text-center lead")
+            )
+        ),
+        dbc.Row(
+            dbc.Col(
+                html.H2("SOY PUTO SOY PIÑON", className="text-gay text-center")
+            )
+        )
+    ],
+)
+"""
 df_aguacate = pd.read_csv('C:/Users/usuario26/Desktop/chures_dash/data/aguacate.csv')
 
 
@@ -34,7 +54,7 @@ app.layout = html.Div(children=[
     dcc.Graph(id='price-graph')
 ])
 
-
+"""
 @app.callback(
     Output('price-graph', 'figure'),
     Input('region-dropdown', 'value'),
@@ -47,8 +67,9 @@ def actualizar(region,tipos):
         df_total=df_total[df_total["region"]==region]
     if tipos != "Todas":
         df_total=df_total[df_total["type"]==tipos]
-    fig=px.bar(df_total,x="region",y="Total_Volume",
-               title=f"penes largos para ariel {region}")
+    fig=px.bar(
+        df_total,x="region",y="Total_Volume",
+        title=f"penes largos para ariel {region}")
         
     return fig
 

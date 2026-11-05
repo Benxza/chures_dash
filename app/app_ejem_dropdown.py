@@ -16,7 +16,7 @@ regiones = ['Todas'] + df_principal['Region'].sort_values().unique().tolist()
 
 regiones_aguacate = ['Todas'] + df_aguacate['region'].sort_values().unique().tolist()
 
-categorias = df_principal['Categoria'].sort_values().unique()
+categorias = ['Todas'] + df_principal['Categoria'].sort_values().unique().tolist()
 
 
 
@@ -63,7 +63,7 @@ app.layout = html.Div(children=[
             Output("grafico-aguacate", "figure"),
             Input("Dropdown-categoria", "value"), 
             Input("Dropdown-Region", "value"),
-            Input("Dropdown-aguacate", "value"),
+            Input("Dropdown-producto", "value"),
               )
 
 def actualizar_grafica(categoria_seleccionada, region_seleccionada, region_aguacate_seleccionada):
@@ -71,7 +71,7 @@ def actualizar_grafica(categoria_seleccionada, region_seleccionada, region_aguac
     df_categoria = df_principal[df_principal['Categoria'] == categoria_seleccionada]
     
     if region_seleccionada != 'Todas':
-        df_categoria = df_categoria[df_categoria['Region'] == region_seleccionada]
+        df_categoria = df_categoria[df_categoria['Categoria'] == region_seleccionada]
 
     df_av = df_aguacate 
     
