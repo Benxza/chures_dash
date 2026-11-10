@@ -1,0 +1,42 @@
+.titulo_principal{
+    text-align : center ; 
+    color : red ;
+
+}
+
+.subtitulo_principal{
+    text-align : right;
+    color : rgb(30, 28, 48);
+}
+
+.kpi_1{
+    background-color: #9b8888;
+    border-radius: 10px;
+    padding: 18px 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+.kpi_2{
+    background-color: #866a40;
+    border-radius: 10px;
+    padding: 18px 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+
+.kpi_3{
+    background-color: #704b4b;
+    border-radius: 10px;
+    padding: 18px 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
