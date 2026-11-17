@@ -10,16 +10,6 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.SKETCHY])
 
 df = pd.read_csv('C:/Users/benja/Desktop/Chures_card/app/data/sales.csv')
 
-print(df.columns)
-
-
-
-
-
-
-
-
-
 df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y')
 df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d/%m/%Y')
 
@@ -27,132 +17,156 @@ df['Anio'] = df['Order Date'].dt.year
 df['Mes'] = df['Order Date'].dt.month
 df['Nombre Mes'] = df['Order Date'].dt.month_name()
 
-
-
 Meses  = ['Todas'] + df['Mes'].sort_values().unique().tolist()
 Anios  = ['Todas'] + df['Anio'].sort_values().unique().tolist()
 Categorias  = ['Todas'] + df['Category'].sort_values().unique().tolist()
 Region  = ['Todas'] + df['Region'].sort_values().unique().tolist()
 Segmento = ['Todas'] + df['Segment'].sort_values().unique().tolist()
 
-
-
-
-
-
-ventas_totales = df['Sales'].sum()
+ventas_totales = f"${df['Sales'].sum():,.2f}"
 numero_de_pedidos = df['Order ID'].count()
+ticket_promedio = f"${df['Sales'].sum() / df['Order ID'].nunique():,.2f}"
 dias_promedio = (df['Ship Date'] - df['Order Date']).dt.days.mean()
-dias_promedio_texto = f"{dias_promedio:.1f} días" if pd.notnull(dias_promedio) else "N/A"
+dias_promedio_texto = f"{dias_promedio:.1f} días"
 
-
-
-
-
-
-
-app.layout= dbc.Container([
+app.layout = dbc.Container([
     dbc.Row(
         dbc.Col(
             html.H1('Dash Board de Ventas La Mera punta del Segmento')
-
-        )),
+        )
+    ),
     dbc.Row([
-            dbc.Col([
-                #Kpis
-                dbc.Card([
-                    dbc.CardHeader('Ventas totales'),
-                    dbc.CardBody(
-                        html.P(ventas_totales)
-                    )
-                ])
-            ]),
-            dbc.Col([
-                dbc.Card([
-                    dbc.CardHeader('Numero de pedidos'),
-                    dbc.CardBody(
-                        html.P(numero_de_pedidos))
-            ]),
-
-        ]),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Ventas totales'),
+                dbc.CardBody(
+                    html.H4(ventas_totales)
+                )
+            ], className="shadow-sm mb-3")
+        ], width=12, md=3),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Numero de pedidos'),
+                dbc.CardBody(
+                    html.H4(numero_de_pedidos)
+                )
+            ], className="shadow-sm mb-3")
+        ], width=12, md=3),
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Ticket Promedio'),
+                dbc.CardBody(
+                    html.H4(ticket_promedio)
+                )
+            ], className="shadow-sm mb-3")
+        ], width=12, md=3),
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader('Dias promedio de entrega'),
                 dbc.CardBody(
-                    html.P(dias_promedio_texto))
-        ]),
-    ]),
+                    html.H4(dias_promedio_texto)
+                )
+            ], className="shadow-sm mb-3")
+        ], width=12, md=3),
     ]),
     dbc.Row([
         dbc.Col([
-            html.H3('Ventas por mes'),
-             dcc.Dropdown(
+            dbc.Card([
+                dbc.CardHeader('Filtros y Gráfica - Ventas por Mes'),
+                dbc.CardBody([
+                    html.H3('Ventas por mes'),
+                    dcc.Dropdown(
                         id='DropDown-mes',
                         options=[{'label' : str(mes) , 'value' : mes} for mes in Meses],
-                        value=Meses[0]),
-                dcc.Dropdown(
-                            id='DropDown-anio-meses',
-                            options=[{'label' : str(anio) , 'value' : anio} for anio in Anios],
-                            value=Anios[0]),
-            dcc.Graph(id='Graficos Mes')
-
-        ])
+                        value=Meses[0],
+                        className="mb-2"
+                    ),
+                    dcc.Dropdown(
+                        id='DropDown-anio-meses',
+                        options=[{'label' : str(anio) , 'value' : anio} for anio in Anios],
+                        value=Anios[0],
+                        className="mb-3"
+                    ),
+                    dcc.Graph(id='Graficos Mes')
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=12)
     ]),
     dbc.Row([
         dbc.Col([
-            html.H3('Ventas por categoria'),
-            dcc.Dropdown(
-                id='DropDown-categoria',
-                options=[{'label' : str(cat), 'value' : cat} for cat in Categorias ],
-                value=Categorias[0],
-            ),
-            dcc.Graph(id='Graficos Categoria')
-
-    ]),
-    ]),
-    dbc.Row([
-        dbc.Col([
-            html.H3('Ventas por region y año'),
-            dcc.Dropdown(
-                id='DropDown-region',
-                options=[{'label' : str(reg) , 'value' : reg} for reg in Region],
-                value=Region[0]
-            ),
-            dcc.Dropdown(
-                 id='DropDown-anio-region',
-                 options=[{'label' : str(anio) , 'value' : anio} for anio in Anios],
-                value=Anios[0]),
-            dcc.Graph(id='Graficos Region')
-
-            
-        ])
+            dbc.Card([
+                dbc.CardHeader('Filtros y Gráfica - Ventas por Categoria'),
+                dbc.CardBody([
+                    html.H3('Ventas por categoria'),
+                    dcc.Dropdown(
+                        id='DropDown-categoria',
+                        options=[{'label' : str(cat), 'value' : cat} for cat in Categorias],
+                        value=Categorias[0],
+                        className="mb-3"
+                    ),
+                    dcc.Graph(id='Graficos Categoria')
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=12)
     ]),
     dbc.Row([
         dbc.Col([
-            html.H3('Ventas por Segmento'),
-            dcc.Dropdown(
+            dbc.Card([
+                dbc.CardHeader('Filtros y Gráfica - Ventas por Región y Año'),
+                dbc.CardBody([
+                    html.H3('Ventas por region y año'),
+                    dcc.Dropdown(
+                        id='DropDown-region',
+                        options=[{'label' : str(reg) , 'value' : reg} for reg in Region],
+                        value=Region[0],
+                        className="mb-2"
+                    ),
+                    dcc.Dropdown(
+                        id='DropDown-anio-region',
+                        options=[{'label' : str(anio) , 'value' : anio} for anio in Anios],
+                        value=Anios[0],
+                        className="mb-3"
+                    ),
+                    dcc.Graph(id='Graficos Region')
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader('Filtros y Gráfica - Ventas por Segmento'),
+                dbc.CardBody([
+                    html.H3('Ventas por Segmento'),
+                    dcc.Dropdown(
                         id='DropDown-Segmento',
                         options=[{'label' : str(seg) , 'value' : seg} for seg in Segmento],
-                        value=Segmento[0]),
-            dcc.Graph(id='Graficos segmento')
-        ])
+                        value=Segmento[0],
+                        className="mb-3"
+                    ),
+                    dcc.Graph(id='Graficos segmento')
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=12)
     ]),
     dbc.Row([
         dbc.Col([
-            html.H3('Top 10 Clientes'),
-            dcc.Graph(id='Graficos-Top-10')
-        ])
+            dbc.Card([
+                dbc.CardHeader('Gráfica - Top 10 Clientes'),
+                dbc.CardBody([
+                    html.H3('Top 10'),
+                    dcc.Graph(id='Graficos-Top-10')
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=12)
     ])
-])
-
-
+], fluid=True)
 
 @app.callback(
     Output('Graficos Mes', 'figure'),
     Input('DropDown-mes', 'value'),
     Input('DropDown-anio-meses', 'value')
 )
-
 def actualizar_grafica_mes(mes_seleccionado, anio_seleccionado):
     dff = df.copy()
     
@@ -167,7 +181,7 @@ def actualizar_grafica_mes(mes_seleccionado, anio_seleccionado):
         data_frame=df_agrupado,
         x='Nombre Mes',
         y='Sales',
-        title=f'Ventas Mensuales Año'
+        title=f'Ventas Mensuales (Año: {anio_seleccionado})'
     )
     return fig
 
@@ -176,7 +190,6 @@ def actualizar_grafica_mes(mes_seleccionado, anio_seleccionado):
     Input('DropDown-region', 'value'),
     Input('DropDown-anio-region', 'value')
 )
-
 def actualizar_grafica_region(region_seleccionada, anio_seleccionado):
     dff = df.copy()
     
@@ -191,7 +204,7 @@ def actualizar_grafica_region(region_seleccionada, anio_seleccionado):
         data_frame=df_agrupado,
         x='Region',
         y='Sales',
-        title=f'Ventas por Región Año '
+        title=f'Ventas por Región (Año: {anio_seleccionado})'
     )
     return fig
 
@@ -201,7 +214,6 @@ def actualizar_grafica_region(region_seleccionada, anio_seleccionado):
     Input('DropDown-categoria', 'value'),
     Input('DropDown-Segmento', 'value')
 )
-
 def actualizar_graficas_restantes(categoria_seleccionada, segmento_seleccionado):
     dff = df.copy()
     
@@ -233,7 +245,6 @@ def actualizar_graficas_restantes(categoria_seleccionada, segmento_seleccionado)
     Output('Graficos-Top-10', 'figure'),
     Input('DropDown-categoria', 'value')
 )
-
 def actualizar_top_10(categoria_seleccionada):
     dff = df.copy()
     
@@ -252,7 +263,6 @@ def actualizar_top_10(categoria_seleccionada):
         title='Top 10 Clientes'
     )
     return fig
-
 
 if __name__ == '__main__':
     app.run(debug=True)
