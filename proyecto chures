@@ -1,0 +1,254 @@
+import pandas as pd
+import plotly.express as px
+import dash_bootstrap_components as dbc
+from dash import Dash, dcc, html, Input, Output
+
+df = pd.read_csv("sales.csv")
+df["Order Date"] = pd.to_datetime(df["Order Date"], dayfirst=True)
+df["Ship Date"] = pd.to_datetime(df["Ship Date"], dayfirst=True)
+df["year"]= df["Order Date"].dt.year
+df["month"] = df["Order Date"].dt.strftime("%Y-%m")
+df["shipping-delay"] =(df["Ship Date"] - df["Order Date"]).dt.days
+
+años=["todos"] + df["year"].unique().tolist()
+region=["todos"] + df["Region"].unique().tolist()
+segmentos=["todos"] + df["Segment"].unique().tolist()
+categorias=["todos"] + df["Category"].unique().tolist()
+
+
+print(df.head())
+print(años)
+print(region)
+print(segmentos)
+print(categorias)
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+app.layout = dbc.Container([
+
+    # Fila 1: Título
+    dbc.Row([
+        dbc.Col([
+            html.H1(
+                "QUARTZ SALES",
+                className="text-center mt-4"
+            ),
+            html.P(
+                "Dashboard de ventas",
+                className="text-center"
+            )
+        ])
+    ]),
+
+    # Fila 2: Filtros
+    dbc.Row([
+        dbc.Col([
+            html.Label("Año"),
+            dcc.Dropdown(
+                id="filtro-año",
+                options=[{"label": a, "value": a} for a in años],
+                value=años[0],
+                clearable=False
+            )
+        ], md=3),
+
+        dbc.Col([
+            html.Label("Región"),
+            dcc.Dropdown(
+                id="filtro-region",
+                options=[{"label": r, "value": r} for r in region],
+                value=region[0],
+                clearable=False
+            )
+        ], md=3),
+
+        dbc.Col([
+            html.Label("Segmento"),
+            dcc.Dropdown(
+                id="filtro-segmento",
+                options=[{"label": s, "value": s} for s in segmentos],
+                value=segmentos[0],
+                clearable=False
+            )
+        ], md=3),
+
+        dbc.Col([
+            html.Label("Categoria"),
+            dcc.Dropdown(
+                id="filtro-categoria",
+                options=[{"label": c, "value": c} for c in categorias],
+                value=categorias[0],
+                clearable=False
+            )
+        ], md=3),
+    ], className="mb-4"),
+
+    dbc.Row([
+        dbc.Col(
+            dbc.Card(
+                dbc.CardBody([
+                    html.H5("ventas totales", className="card-title"),
+                    html.H3(id="kpi-total", className="text-primary")
+                ])
+            ),
+            md=4
+        ),
+
+        dbc.Col(
+            dbc.Card( 
+            dbc.CardBody([
+                html.H5("pedidos", className="card-title"),
+                html.H3(id="kpi-pedidos", className="text-primary")
+            ])
+        ),
+        md=4
+        ),
+        dbc.Col(
+            dbc.Card( 
+            dbc.CardBody([
+                html.H5("ticket promedio", className="card-title"),
+                html.H3(id="kpi-ticket", className="text-primary")
+            ])
+        ),
+        md=4
+        ),
+        dbc.Col(
+            dbc.Card( 
+            dbc.CardBody([
+                html.H5("dias de envio", className="card-title"),
+                html.H3(id="kpi-envio", className="text-primary")
+            ])
+        ),
+        md=4
+        ),
+
+    ], className="mb-4"),
+    dbc.Row([
+            dcc.Graph(id="ventas_mensuales"),
+            dcc.Graph(id="ventas_categoria"),
+    ]),
+        dbc.Row([
+            dcc.Graph(id="ventas_region"),
+            dcc.Graph(id="ventas_segmento"),
+    ]),
+        dbc.Row([
+            dcc.Graph(id="10"),
+    ])
+], fluid=True)
+
+@app.callback(
+    Output("kpi-total","children"),
+    Output("kpi-pedidos","children"),
+    Output("kpi-ticket","children"),
+    Output("kpi-envio","children"),
+    Output("ventas_mensuales","figure"),
+    Output("ventas_categoria","figure"),
+    Output("ventas_region","figure"),
+    Output("ventas_segmento","figure"),
+    Output("10","figure"),
+    Input("filtro-año","value"),
+    Input("filtro-region","value"),
+    Input("filtro-segmento","value"),
+    Input("filtro-categoria","value"),
+
+)
+
+def actualizar(año, region, segmento, categoria):
+
+    # ---------- FILTRAR DATOS ----------
+    df_filtrado = df.copy()
+
+    if año != "todos":
+        df_filtrado = df_filtrado[df_filtrado["year"] == año]
+
+    if region != "todos":
+        df_filtrado = df_filtrado[df_filtrado["Region"] == region]
+
+    if segmento != "todos":
+        df_filtrado = df_filtrado[df_filtrado["Segment"] == segmento]
+
+    if categoria != "todos":
+        df_filtrado = df_filtrado[df_filtrado["Category"] == categoria]
+
+
+    ventas = df_filtrado["Sales"].sum()
+
+    pedidos = df_filtrado["Order ID"].nunique()
+
+    ticket = ventas / pedidos if pedidos > 0 else 0
+
+    envio = df_filtrado["shipping-delay"].mean()
+
+
+
+    ventas_mensuales = px.line(
+        df_filtrado.groupby("month", as_index=False)["Sales"].sum(),
+        x="month",
+        y="Sales",
+        title="Ventas mensuales"
+    )
+
+
+    ventas_categoria = px.pie(
+        df_filtrado,
+        names="Category",
+        values="Sales",
+        title="Ventas por categoría"
+    )
+
+    ventas_region = px.bar(
+        df_filtrado.groupby(
+            ["Region", "year"], as_index=False
+        )["Sales"].sum(),
+        x="Region",
+        y="Sales",
+        color="year",
+        barmode="group",
+        title="Ventas por región y año"
+    )
+
+
+    ventas_segmento = px.bar(
+        df_filtrado.groupby(
+            "Segment", as_index=False
+        )["Sales"].sum(),
+        x="Segment",
+        y="Sales",
+        title="Ventas por segmento"
+    )
+
+
+    top_clientes = (
+        df_filtrado.groupby("Customer Name")["Sales"]
+        .sum()
+        .nlargest(10)
+        .reset_index()
+    )
+
+    grafica_10 = px.bar(
+        top_clientes,
+        x="Sales",
+        y="Customer Name",
+        orientation="h",
+        title="Top 10 clientes"
+    )
+
+    grafica_10.update_layout(
+        yaxis={"categoryorder": "total ascending"}
+    )
+
+
+    return (
+        f"${ventas:,.2f}",
+        f"{pedidos:,}",
+        f"${ticket:,.2f}",
+        f"{envio:.2f} días" if pd.notna(envio) else "0 días",
+        ventas_mensuales,
+        ventas_categoria,
+        ventas_region,
+        ventas_segmento,
+        grafica_10
+    )
+
+if __name__ == "__main__":
+    app.run(debug=True)
